@@ -1,9 +1,8 @@
-# Stocky
+## Stocky
 ### Lucas Childers
-
-======
+=====
 
 ## Todo
-> Icon
-> Load date
-> Open / Closed
+* Icon  
+* Load date  
+* Open / Closed  
