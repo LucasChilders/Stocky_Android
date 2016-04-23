@@ -22,10 +22,17 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+
 public class MainActivity extends AppCompatActivity {
 
     EditText input;
     Stock stock;
+    ArrayList<String> stocks;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +41,26 @@ public class MainActivity extends AppCompatActivity {
         if (android.os.Build.VERSION.SDK_INT > 9) {
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
             StrictMode.setThreadPolicy(policy);
+        }
+
+        try {
+            InputStream inStream = getAssets().open("stocks.txt");
+            stocks = new ArrayList<>();
+            BufferedReader in = new BufferedReader(new InputStreamReader(inStream));
+
+            String line = null;
+
+            while((line = in.readLine()) != null) {
+                String word = line.trim();
+                stocks.add(word.toUpperCase());
+            }
+
+            for (String stock : stocks) {
+                System.out.println(stock);
+            }
+
+        } catch (IOException e) {
+            System.out.println(e);
         }
 
         setContentView(R.layout.activity_main);
@@ -58,7 +85,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        String[] stocks = {"GOOG", "AAPL", "YHOO", "MNKD", "VJET"};
         ListAdapter adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, stocks);
         ListView listView = (ListView) findViewById(R.id.listView);
         listView.setAdapter(adapter);
@@ -67,7 +93,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 String stockSymbol = String.valueOf(parent.getItemAtPosition(position));
-                System.out.println(stockSymbol);
                 Intent intent = new Intent(MainActivity.this, OutputActivity.class);
                 intent.putExtra("symbol", String.valueOf(stockSymbol));
                 intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
