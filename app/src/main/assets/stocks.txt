@@ -1,0 +1,6 @@
+goog
+aapl
+mnkd
+yhoo
+vjet
+ge
