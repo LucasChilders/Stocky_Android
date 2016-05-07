@@ -2,7 +2,9 @@ package com.lucaschilders.myapplication;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.StrictMode;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -33,6 +35,10 @@ public class MainActivity extends AppCompatActivity {
     EditText input;
     Stock stock;
     ArrayList<String> stocks;
+    FloatingActionButton addButton, deleteButton;
+    ListAdapter adapter;
+    MySQLiteHelper db;
+    ListView listView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,32 +49,20 @@ public class MainActivity extends AppCompatActivity {
             StrictMode.setThreadPolicy(policy);
         }
 
-        try {
-            InputStream inStream = getAssets().open("stocks.txt");
-            stocks = new ArrayList<>();
-            BufferedReader in = new BufferedReader(new InputStreamReader(inStream));
+        stocks = new ArrayList<>();
+        db = new MySQLiteHelper(this);
 
-            String line = null;
-
-            while((line = in.readLine()) != null) {
-                String word = line.trim();
-                stocks.add(word.toUpperCase());
-            }
-
-            for (String stock : stocks) {
-                System.out.println(stock);
-            }
-
-        } catch (IOException e) {
-            System.out.println(e);
-        }
+        loadStockList();
 
         setContentView(R.layout.activity_main);
         this.setTitle("Stocky");
 
         input = (EditText) findViewById(R.id.symbolInput);
+        addButton = (FloatingActionButton) findViewById(R.id.addButton);
+        deleteButton = (FloatingActionButton) findViewById(R.id.deleteButton);
         input.setFilters(new InputFilter[] {new InputFilter.AllCaps()});
-        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
 
         input.setOnKeyListener(new View.OnKeyListener() {
             public boolean onKey(View v, int keyCode, KeyEvent event) {
@@ -84,9 +78,41 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        addButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, AddStockActivity.class);
+                startActivity(intent);
+            }
+        });
 
-        ListAdapter adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, stocks);
-        ListView listView = (ListView) findViewById(R.id.listView);
+        deleteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, RemoveStockActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        refreshAdapter();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+        loadStockList();
+        refreshAdapter();
+    }
+
+    public void loadStockList() {
+        stocks.clear();
+        stocks = db.getAllStocks();
+    }
+
+    public void refreshAdapter() {
+        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, stocks);
+        listView = (ListView) findViewById(R.id.listView);
         listView.setAdapter(adapter);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -100,11 +126,5 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
     }
 }
